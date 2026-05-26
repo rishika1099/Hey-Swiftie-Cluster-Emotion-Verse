@@ -306,7 +306,7 @@ def health() -> dict:
         "models_loaded": all(
             x is not None for x in (emotion_analyzer, diary_classifier, theme_manager, letter_generator)
         ),
-        "clustered_csv_exists": CLUSTERED_CSV.exists(),
+        "clustered_csv_exists": _pick_clustered_csv().exists(),
     }
 
 
