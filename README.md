@@ -1,15 +1,22 @@
 # 💌 Dear Diary, Love Taylor
 
-Write a diary entry. Get a Taylor-Swift-style verse back, with song
-recommendations that match your mood, on a pretty wrinkled pink letter.
+**🌸 Live at [dear-diary-love-taylor.vercel.app](https://dear-diary-love-taylor.vercel.app/)**
 
-- **Frontend**: Vite + React, custom hand-lettered fonts, falling petals,
-  drifting song bubbles you can drag around and click to open in Spotify.
-- **Backend**: FastAPI. BERT (`distilroberta-base-emotion`) extracts your
-  emotional profile. K-Means clusters all 867 Taylor Swift songs by
-  emotion. Your diary entry gets matched to the closest cluster.
-  GPT-4o-mini writes the verse in her style. A Spotify enrichment pass
-  joins each recommended song to its real Spotify track ID.
+Tell the diary about your day. A fine-tuned BERT model traces your
+emotions across seven dimensions, K-Means matches them against 867
+clustered Taylor Swift songs, and GPT-4o-mini writes you back an original
+verse in her lyrical style. Your letter arrives in a pink envelope you
+click to open — wrinkled coffee-stained paper, hand-lettered fonts, and
+eight draggable Spotify-linked song bubbles floating around the page,
+ranked by how closely they match your mood.
+
+- **Frontend**: Vite + React on Vercel — custom hand-lettered fonts,
+  falling petals, drifting song bubbles you can drag around and click
+  to open in Spotify.
+- **Backend**: FastAPI on Hugging Face Spaces. DistilRoBERTa extracts
+  your emotional profile; K-Means clusters all 867 Taylor Swift songs by
+  emotion; GPT-4o-mini writes the verse in her style; a Spotify enrichment
+  pass joins each recommended song to its real Spotify track ID.
 
 ## Project layout
 
