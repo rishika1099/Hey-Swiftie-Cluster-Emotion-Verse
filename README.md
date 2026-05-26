@@ -21,6 +21,74 @@ ranked by how closely they match your mood.
   a Spotify enrichment pass joins each recommended song to its real
   Spotify track ID.
 
+## How it works
+
+```
+                       ┌─────────────────────────────────────────────┐
+   diary entry  ────►  │ 1. Emotion vector                           │
+                       │    DistilRoBERTa → {anger, joy, sadness…}   │
+                       │    + compound features                      │
+                       │       (valence, arousal, dominance)         │
+                       └─────────────────────────────────────────────┘
+                                          │
+                                          ▼
+                       ┌─────────────────────────────────────────────┐
+                       │ 2. Cluster match                            │
+                       │    K-Means (k=8) over 11-dim feature space  │
+                       │    → matched cluster id + label             │
+                       │      (e.g. "Heartbreak Ballads")            │
+                       └─────────────────────────────────────────────┘
+                                          │
+                                          ▼
+       ┌──────────────────────────────────┴──────────────────────────────────┐
+       │                                                                     │
+       ▼                                                                     ▼
+┌─────────────────────────────┐                       ┌──────────────────────────────┐
+│ 3a. Song recommendations    │                       │ 3b. Vector RAG (style)       │
+│   percentile-rank songs in  │                       │   embed diary with MiniLM    │
+│   the matched cluster by    │                       │   FAISS search 3,050 stanzas │
+│   distance to the diary;    │                       │   post-filter to matched     │
+│   join with Spotify catalog │                       │   cluster, dedup by song;    │
+│   for real track ids; top-8 │                       │   top-6 unique stanzas       │
+└──────────────────────────────┘                      └──────────────────────────────┘
+       │                                                                     │
+       └───────────────────────────────┬─────────────────────────────────────┘
+                                       ▼
+                       ┌─────────────────────────────────────────────┐
+                       │ 4. GPT-4o-mini verse generation             │
+                       │    system prompt = style description +      │
+                       │    the 6 retrieved Taylor stanzas as        │
+                       │    in-context anchors (cadence + imagery);  │
+                       │    user prompt = the diary entry            │
+                       └─────────────────────────────────────────────┘
+                                       │
+                                       ▼
+                       ┌─────────────────────────────────────────────┐
+                       │ 5. JSON to the frontend                     │
+                       │    { poem, theme, cluster,                  │
+                       │      emotions, songs[] }                    │
+                       └─────────────────────────────────────────────┘
+```
+
+### Why vector RAG (and not just zero-shot prompting)?
+
+Without retrieval, GPT writes "Taylor-ish" verses based purely on what
+it learned during pre-training — surface-level imitation. With vector
+RAG it sees *her actual phrasing in this emotional space* before
+generating, so the cadence, imagery density, and word choices come
+out noticeably more authentic. The cluster filter ensures we don't
+retrieve a happy-pop verse for a heartbreak diary even if a few words
+happen to align.
+
+### Why not full Graph RAG?
+
+A graph layer (extract themes/entities → walk the graph → retrieve
+stanzas that share motifs even if vocab differs) would surface
+recurring motifs (3am, kitchens, scarlet, the other woman) more
+reliably. It's planned as a v2 — extracting entities for ~400 songs
+with `gpt-4o-mini` is a one-time ~$5 preprocessing pass. The current
+vector-RAG pipeline gets ~80% of the quality at zero preprocessing cost.
+
 ## Project layout
 
 ```

@@ -47,7 +47,7 @@ export default function App() {
         <h1 className="app__title">Dear Diary,</h1>
         <h2 className="app__subtitle">Love, Taylor 💌</h2>
         <p className="app__tagline">
-          tell me about your day — i'll write you back in verse
+          tell me about your day, i'll write you back in verse
         </p>
       </header>
 
