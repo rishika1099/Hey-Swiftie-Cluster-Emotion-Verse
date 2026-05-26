@@ -6,7 +6,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://YOUR-HF-SPACE.hf.space/api/:path*"
+      "destination": "https://rm4318-hey-swiftie-backend.hf.space/api/:path*"
     }
   ]
 }
