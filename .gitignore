@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.env
+
+# Node
+node_modules/
+frontend/dist/
+frontend/.vite/
+
+# ML artifacts (regenerable via the pipeline)
+models/*.pkl
+data/raw/*.csv
+data/processed/*.csv
+data/processed/*.png
+
+# Album cover art is extracted from the Kaggle dataset (copyrighted)
+cover_art/*.jpg
+cover_art/*.jpeg
+cover_art/*.png
+cover_art/*.webp
+!cover_art/README.md
+
+# Kaggle archive (large, user downloads themselves)
+archive.zip
+archive*.zip
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+*.swp
+.claude/
+openiai_key.rtf
+*.rtf
+openai_key*
+.env*
