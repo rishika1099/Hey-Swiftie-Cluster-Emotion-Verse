@@ -18,8 +18,8 @@ const HOMES = [
   [0.08, 0.85], [0.78, 0.88],
 ];
 
-const DRIFT_SPEED = 40;     // px/s baseline
-const FLING_CAP = 450;      // max post-drag velocity
+const DRIFT_SPEED = 14;     // px/s baseline — slow, ambient drift
+const FLING_CAP = 250;      // max post-drag velocity (also limits drift)
 const CLICK_THRESHOLD = 5;  // px before a press becomes a drag
 
 

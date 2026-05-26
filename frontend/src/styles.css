@@ -24,6 +24,14 @@
 }
 
 @font-face {
+  font-family: 'Birthday Thanksgiving';
+  src: url('/fonts/BirthdayThanksgiving.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
   font-family: 'Beauty Gadish';
   src: url('/fonts/BeautyGadish.otf') format('opentype');
   font-weight: 400;
@@ -75,7 +83,7 @@
   --font-letter: 'Betris and Daniel', 'Dancing Script', cursive;  /* poem body */
   --font-handwritten: 'Little Days', 'Dancing Script', cursive;    /* diary input */
   --font-label: 'Beauty Gadish', 'Parisienne', cursive;            /* Dear Diary, label */
-  --font-display: 'Megalin', 'Parisienne', cursive;                /* tagline + button */
+  --font-display: 'Birthday Thanksgiving', 'Parisienne', cursive;  /* tagline + button */
   --font-body: 'Quicksand', system-ui, -apple-system, sans-serif;
 }
 
@@ -400,15 +408,17 @@ body {
 
 .poem__meta {
   text-align: center;
-  font-size: 11px;
-  letter-spacing: 0.18em;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: var(--paper-stain);
+  color: var(--pink-600);
+  text-shadow: 0 1px 0 rgba(255, 240, 220, 0.6);
   margin-bottom: 22px;
   opacity: 0;
   animation: lineFadeIn 500ms ease-out 500ms forwards;
 }
-.poem__dot { margin: 0 8px; opacity: 0.6; }
+.poem__dot { margin: 0 10px; color: var(--pink-400); }
 
 .poem__body {
   font-family: var(--font-letter);
