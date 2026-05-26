@@ -63,10 +63,29 @@ class LetterGenerator:
         print(f"  Model: {model_name}")
         print(f"  Cost: ~$0.0001 per letter (very affordable!)")
     
-    def _create_prompt(self, diary_entry, cluster_info, theme_info):
-        """Create a prompt for OpenAI that captures Taylor Swift's lyrical style."""
+    def _create_prompt(self, diary_entry, cluster_info, theme_info, examples=None):
+        """Create a prompt for OpenAI that captures Taylor Swift's lyrical style.
+
+        Args:
+            examples: optional list of retrieved Taylor stanzas (from vector RAG).
+                Each dict has keys 'text', 'track_title', 'album_name'.
+        """
         top_emotion = cluster_info.get('top_emotion', 'neutral')
         cluster_label = cluster_info.get('cluster_label', 'mixed emotions')
+
+        examples_block = ""
+        if examples:
+            formatted = "\n\n".join(
+                f'"{e["text"]}"\n— from "{e["track_title"]}"'
+                for e in examples[:6]
+            )
+            examples_block = (
+                "\n\nHere are some of Taylor's own stanzas that share this emotional space. "
+                "Study the cadence, the way she uses line breaks to do emotional work, "
+                "her specific imagery (storms, golden hour, kitchens, scarlet, 3am). "
+                "Then write something NEW in that voice. Do NOT copy phrases verbatim.\n\n"
+                f"{formatted}"
+            )
         
         system_prompt = """You are writing a short poem in the style of Taylor Swift's song lyrics — for a friend who just shared something personal.
 
@@ -89,6 +108,8 @@ FORMAT — this is strict:
 
 Think "verse from a song" not "letter". The reader should be able to read it like lyrics."""
 
+        system_prompt += examples_block
+
         user_prompt = f"""A friend shared this with me:
 
 "{diary_entry[:400]}"
@@ -101,8 +122,8 @@ Write a Taylor-Swift-style lyric poem responding to them. Stanzas, line breaks, 
 
         return system_prompt, user_prompt
     
-    def generate_letter(self, diary_entry, cluster_info, theme_info, 
-                       max_length=250, temperature=0.7, top_p=0.9):
+    def generate_letter(self, diary_entry, cluster_info, theme_info,
+                       max_length=250, temperature=0.7, top_p=0.9, examples=None):
         """
         Generate a letter using OpenAI API.
         
@@ -123,7 +144,11 @@ Write a Taylor-Swift-style lyric poem responding to them. Stanzas, line breaks, 
         
         try:
             # Create prompts
-            system_prompt, user_prompt = self._create_prompt(diary_entry, cluster_info, theme_info)
+            system_prompt, user_prompt = self._create_prompt(
+                diary_entry, cluster_info, theme_info, examples=examples
+            )
+            if examples:
+                print(f"🔍 RAG: anchoring on {len(examples)} retrieved stanzas")
             
             print("🔍 DEBUG: Calling OpenAI API...")
             print(f"   API Key starts with: {self.api_key[:10]}...")

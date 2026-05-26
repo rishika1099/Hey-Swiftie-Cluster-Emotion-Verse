@@ -16,6 +16,8 @@ models/*.pkl
 data/raw/*.csv
 data/processed/*.csv
 data/processed/*.png
+data/processed/*.faiss
+data/processed/*.json
 
 # Album cover art is extracted from the Kaggle dataset (copyrighted)
 cover_art/*.jpg

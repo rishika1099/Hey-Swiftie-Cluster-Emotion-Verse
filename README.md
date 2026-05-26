@@ -15,8 +15,11 @@ ranked by how closely they match your mood.
   to open in Spotify.
 - **Backend**: FastAPI on Hugging Face Spaces. DistilRoBERTa extracts
   your emotional profile; K-Means clusters all 867 Taylor Swift songs by
-  emotion; GPT-4o-mini writes the verse in her style; a Spotify enrichment
-  pass joins each recommended song to its real Spotify track ID.
+  emotion; a **vector RAG** layer retrieves the most thematically similar
+  stanzas from her actual lyrics (3,050 stanzas indexed via FAISS +
+  sentence-transformers) and feeds them to GPT-4o-mini as style anchors;
+  a Spotify enrichment pass joins each recommended song to its real
+  Spotify track ID.
 
 ## Project layout
 
@@ -84,6 +87,7 @@ python src/sentiment_analyzer.py            # ~5–10 min on CPU
 python src/clustering.py
 python deduplicate_songs.py
 python enrich_spotify.py                    # adds spotify_id to each song
+python build_lyric_index.py                 # FAISS index for vector RAG
 ```
 
 ### 4. Frontend deps

@@ -35,6 +35,10 @@ CLUSTERED_DEDUP_CSV = ROOT / "data" / "processed" / "taylor_swift_clustered_dedu
 CLUSTERED_CSV_FALLBACK = ROOT / "data" / "processed" / "taylor_swift_clustered.csv"
 COVER_DIR = ROOT / "cover_art"
 
+LYRIC_INDEX_PATH = ROOT / "data" / "processed" / "lyric_index.faiss"
+LYRIC_CHUNKS_PATH = ROOT / "data" / "processed" / "lyric_chunks.json"
+EMBED_MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
+
 
 def _pick_clustered_csv() -> Path:
     """Prefer the Spotify-enriched CSV, then dedup, then the raw clustered one."""
@@ -63,6 +67,11 @@ emotion_analyzer: SentimentAnalyzer | None = None
 diary_classifier: DiaryClassifier | None = None
 theme_manager: ThemeManager | None = None
 letter_generator: LetterGenerator | None = None
+
+# Vector RAG state
+lyric_index = None       # faiss.IndexFlatIP
+lyric_chunks: list[dict] = []
+embedder = None          # SentenceTransformer
 
 
 @app.on_event("startup")
@@ -109,6 +118,23 @@ def load_models() -> None:
     if not api_key:
         print("⚠️  OPENAI_API_KEY not set — letter generation will use fallback templates.")
     letter_generator = LetterGenerator("gpt-4o-mini", api_key=api_key or "missing")
+
+    # Vector RAG: load FAISS index + chunk metadata + sentence-transformer model.
+    # Optional — if the artifacts are missing we just generate without retrieval.
+    global lyric_index, lyric_chunks, embedder
+    if LYRIC_INDEX_PATH.exists() and LYRIC_CHUNKS_PATH.exists():
+        import json
+        import faiss
+        from sentence_transformers import SentenceTransformer
+
+        print(f"✓ Loading lyric RAG index from {LYRIC_INDEX_PATH.name}")
+        lyric_index = faiss.read_index(str(LYRIC_INDEX_PATH))
+        with open(LYRIC_CHUNKS_PATH) as f:
+            lyric_chunks = json.load(f)
+        embedder = SentenceTransformer(EMBED_MODEL_NAME)
+        print(f"✓ Lyric RAG ready ({len(lyric_chunks)} stanzas, dim={lyric_index.d})")
+    else:
+        print("ℹ️  No lyric_index.faiss — verse generation will skip RAG.")
 
 
 class GenerateRequest(BaseModel):
@@ -299,6 +325,43 @@ def _find_cover(album_name: str) -> str | None:
     return None
 
 
+def _retrieve_stanzas(
+    diary_text: str,
+    cluster_id: int,
+    k: int = 6,
+    pool: int = 80,
+) -> list[dict]:
+    """Pull cluster-filtered Taylor stanzas most similar to the diary.
+
+    The FAISS index is unfiltered (one big haystack), so we over-retrieve
+    `pool` candidates by raw similarity, then keep the first `k` whose
+    cluster matches the diary's matched cluster — and dedup by song so we
+    don't return the same song twice with two stanzas.
+    """
+    if lyric_index is None or embedder is None or not lyric_chunks:
+        return []
+    import numpy as np
+
+    query = embedder.encode([diary_text], normalize_embeddings=True).astype("float32")
+    scores, idxs = lyric_index.search(query, pool)
+
+    out, seen_songs = [], set()
+    for score, i in zip(scores[0].tolist(), idxs[0].tolist()):
+        if i < 0:
+            continue
+        chunk = lyric_chunks[i]
+        if chunk["cluster"] != cluster_id:
+            continue
+        title = chunk["track_title"]
+        if title in seen_songs:
+            continue
+        seen_songs.add(title)
+        out.append({**chunk, "score": float(score)})
+        if len(out) >= k:
+            break
+    return out
+
+
 @app.get("/api/health")
 def health() -> dict:
     return {
@@ -321,7 +384,13 @@ def generate(req: GenerateRequest) -> dict:
     classification = diary_classifier.classify_diary(req.diary, emotion_analyzer)
     cluster_stats = diary_classifier.get_cluster_stats(classification["cluster_id"])
     theme = theme_manager.get_theme_for_cluster(cluster_stats)
-    poem = letter_generator.generate_letter(req.diary, classification, theme, temperature=0.9)
+
+    # Retrieve Taylor's own stanzas matching the diary's emotional space,
+    # then feed them to GPT as style anchors (vector RAG).
+    examples = _retrieve_stanzas(req.diary, classification["cluster_id"], k=6)
+    poem = letter_generator.generate_letter(
+        req.diary, classification, theme, temperature=0.9, examples=examples
+    )
 
     # Dedup recommended songs by canonical title (e.g. "All Too Well" and
     # "All Too Well (10 Minute Version) (From The Vault)" collapse to one).

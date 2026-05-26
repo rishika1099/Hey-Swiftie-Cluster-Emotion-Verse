@@ -19,6 +19,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt .
 RUN pip install -r requirements.txt torch --extra-index-url https://download.pytorch.org/whl/cpu
 
+# Pre-download the sentence-transformer + BERT emotion model so the
+# container's first request doesn't pay a cold-download tax.
+RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')" \
+ && python -c "from transformers import pipeline; pipeline('text-classification', model='j-hartmann/emotion-english-distilroberta-base', return_all_scores=True)"
+
 # App code
 COPY backend ./backend
 COPY src ./src
