@@ -167,50 +167,74 @@ body {
 
 /* ─── Diary input ────────────────────────────────────────────────────── */
 .diary {
-  background: rgba(255, 255, 255, 0.7);
+  position: relative;
+  background: rgba(255, 255, 255, 0.78);
   backdrop-filter: blur(8px);
   border: 1.5px solid rgba(255, 158, 199, 0.55);
   border-radius: 28px;
-  padding: 28px 28px 22px;
+  padding: 36px 32px 22px;
   box-shadow: var(--shadow-pink);
+}
+
+/* Date in the top-right corner — like a real journal entry header */
+.diary__date {
+  position: absolute;
+  top: 18px;
+  right: 26px;
+  font-family: var(--font-handwritten);
+  font-size: 18px;
+  color: var(--pink-500);
+  opacity: 0.85;
+  pointer-events: none;
 }
 
 .diary__label {
   display: block;
   font-family: var(--font-label);
-  font-size: 48px;
-  line-height: 1;
+  font-size: 44px;
+  line-height: 1.1;
   color: var(--pink-600);
-  margin-bottom: 12px;
+  margin: 0 0 12px;
 }
 
+/* Ruled diary lines — text sits on faint pink horizontal lines.
+   The 32px line-height matches the gradient stop so each line of
+   text rests neatly on its rule. */
 .diary__textarea {
   width: 100%;
   border: none;
   outline: none;
   resize: vertical;
-  min-height: 160px;
+  min-height: 192px;        /* 6 ruled lines visible */
   background: transparent;
   font-family: var(--font-handwritten);
-  font-size: 26px;
-  line-height: 1.45;
+  font-size: 22px;
+  line-height: 32px;
   color: var(--rose-deep);
-  padding: 8px 4px;
-  border-bottom: 2px dotted var(--pink-300);
+  padding: 0 4px;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 31px,
+    rgba(255, 158, 199, 0.4) 31px,
+    rgba(255, 158, 199, 0.4) 32px
+  );
+  background-attachment: local;   /* lines scroll with text */
 }
 
 .diary__textarea::placeholder {
   color: rgba(107, 29, 74, 0.4);
   font-family: var(--font-handwritten);
-  font-size: 24px;
+  font-size: 20px;
+  line-height: 32px;
 }
 
 .diary__footer {
   display: flex;
   flex-direction: column;
   align-items: center;       /* center the button */
-  margin-top: 18px;
-  gap: 10px;
+  margin-top: 12px;
+  gap: 6px;
 }
 
 .diary__count {
@@ -221,11 +245,11 @@ body {
 }
 
 .diary__button {
-  font-family: var(--font-display);
+  font-family: 'Megalin', var(--font-display);
   font-weight: 400;
   font-size: 28px;
   letter-spacing: 0.01em;
-  padding: 14px 40px;
+  padding: 14px 44px;
   background: linear-gradient(135deg, var(--pink-400), var(--pink-500) 60%, var(--pink-600));
   color: #fff;
   border: none;

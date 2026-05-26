@@ -196,11 +196,15 @@ class DiaryClassifier:
         
         # Calculate distance from diary to each song
         distances = np.linalg.norm(song_features - features_scaled, axis=1)
-        
-        # Convert distance to similarity (higher = more similar)
-        # CONCEPT: Inverse distance → songs with smaller distance = higher similarity
-        max_distance = distances.max()
-        similarities = 1 - (distances / max_distance)
+
+        # Convert distance → similarity via percentile-rank within the cluster.
+        # The closest song gets 100%, the farthest 0%, and everything in
+        # between is linearly spaced. This is more interpretable than
+        # 1 - dist/max_dist (which collapses to ~0 for short / noisy diary
+        # entries that land far from any cluster centroid).
+        ranks = distances.argsort().argsort().astype(float)
+        n = max(len(ranks) - 1, 1)
+        similarities = 1.0 - ranks / n
         
         # Add similarity scores to cluster songs
         cluster_songs = cluster_songs.copy()

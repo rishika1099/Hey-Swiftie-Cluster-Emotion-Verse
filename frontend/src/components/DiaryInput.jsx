@@ -3,6 +3,16 @@ import { useState } from 'react';
 const PLACEHOLDER =
   "today was a lot... write everything you'd say if no one was reading.";
 
+// Format today's date like a real journal header: "Tuesday, 26 May 2026"
+function formatToday() {
+  return new Date().toLocaleDateString('en-GB', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+}
+
 export default function DiaryInput({ onSubmit, loading }) {
   const [text, setText] = useState('');
 
@@ -14,6 +24,7 @@ export default function DiaryInput({ onSubmit, loading }) {
 
   return (
     <form className="diary" onSubmit={submit}>
+      <div className="diary__date">{formatToday()}</div>
       <label className="diary__label" htmlFor="diary-entry">
         Dear Diary,
       </label>
@@ -33,7 +44,7 @@ export default function DiaryInput({ onSubmit, loading }) {
           className="diary__button"
           disabled={loading || text.trim().length < 10}
         >
-          {loading ? 'writing...' : 'Generate verse'}
+          {loading ? 'putting pen to paper' : 'Generate verse'}
         </button>
       </div>
     </form>
